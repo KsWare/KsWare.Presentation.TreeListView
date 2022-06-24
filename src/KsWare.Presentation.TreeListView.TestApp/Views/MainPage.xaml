@@ -1,0 +1,44 @@
+﻿<UserControl x:Class="KsWare.Presentation.TreeListView.TestApp.Views.MainPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:views="clr-namespace:KsWare.Presentation.TreeListView.TestApp.Views"
+             xmlns:controls="clr-namespace:KsWare.Presentation.TreeListView.Controls;assembly=KsWare.Presentation.TreeListView"
+             mc:Ignorable="d"
+             d:DesignHeight="500" d:DesignWidth="500">
+	<Grid>
+		<TabControl>
+			<TabItem Header="Person">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="*" />
+					</Grid.ColumnDefinitions>
+					<controls:TreeListView 
+						x:Name="PersonTreeListView" x:FieldModifier="public" 
+						DisplayName="Tree"
+						DefaultMessage="Click on the Load Model button." 
+						Margin="2" />
+					<views:TestPanel x:Name="PersonTestPanel" Grid.Column="1" />
+				</Grid>
+			</TabItem>
+			<TabItem Header="Multi Column">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="*" />
+					</Grid.ColumnDefinitions>
+					<controls:TreeListView x:Name="MultiColumnTreeListView" x:FieldModifier="public" DisplayName="MultiTree" Margin="2">
+						<controls:TreeListView.Columns>
+							<controls:TreeListViewColumn Header="Name" DisplayMemberPath="Name" />
+							<controls:TreeListViewColumn Header="Kind" DisplayMemberPath="Kind" />
+							<controls:TreeListViewColumn Header="Data" DisplayMemberPath="Data" />
+						</controls:TreeListView.Columns>
+					</controls:TreeListView>
+					<views:TestPanel x:Name="RegisterTestPanel" Grid.Column="1" />
+				</Grid>
+			</TabItem>
+		</TabControl>
+	</Grid>
+</UserControl>

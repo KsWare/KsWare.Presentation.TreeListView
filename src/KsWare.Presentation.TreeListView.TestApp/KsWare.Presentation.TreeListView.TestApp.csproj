@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWPF>true</UseWPF>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+  </PropertyGroup>
+  <ItemGroup>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\KsWare.Presentation.TreeListView\KsWare.Presentation.TreeListView.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Data.png" />
+    <Resource Include="Resources\DataString.png" />
+    <Resource Include="Resources\Folder.png" />
+    <Resource Include="Resources\Person.png" />
+  </ItemGroup>
+</Project>
