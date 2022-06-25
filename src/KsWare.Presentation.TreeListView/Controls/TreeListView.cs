@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,29 +18,46 @@ namespace KsWare.Presentation.TreeListView.Controls {
 	/// </summary>
 	[TemplatePart(Name = PartListView, Type = typeof(ExtendedListView))]
 	[TemplatePart(Name = PartDefaultMessage, Type = typeof(Label))]
+	[SuppressMessage("ReSharper", "ClassWithVirtualMembersNeverInherited.Global")]
 	public class TreeListView : ItemsControl {
 
-		#region Dependencies
+		#region Constants
+
+		/// <summary>
+		/// Name of the parts that have to be in the control template.
+		/// </summary>
+		private const string PartListView = "PART_ListView";
+
+		private const string PartDefaultMessage = "PART_DefaultMessage";
+
+		/// <summary>
+		/// Constant containing the default property name displayed in the tree view.
+		/// </summary>
+		internal const string DefaultDisplayedPropertyName = "DisplayString";
+
+		#endregion
+
+
+		#region DependencyProperties
 
 		/// <summary>
 		/// Identifies the ViewModel dependency property.
 		/// </summary>
 		public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel",
 			typeof(ITreeListViewRootItemVM), typeof(TreeListView),
-			new FrameworkPropertyMetadata(null, new PropertyChangedCallback(OnViewModelChanged)));
+			new FrameworkPropertyMetadata(null, (d,e)=>((TreeListView)d).OnViewModelChanged(e)));
 
 		/// <summary>
 		/// Identifies the DefaultMessage dependency property.
 		/// </summary>
 		public static readonly DependencyProperty DefaultMessageProperty = DependencyProperty.Register("DefaultMessage",
-			typeof(string), typeof(TreeListView), new FrameworkPropertyMetadata("No message defined."));
+			typeof(string), typeof(TreeListView), new FrameworkPropertyMetadata("No message defined.")); // TODO message
 
 		/// <summary>
 		/// Identifies the GroupItemDataTemplate dependency property.
 		/// </summary>
 		public static readonly DependencyProperty GroupItemDataTemplateProperty =
-			DependencyProperty.Register("GroupItemDataTemplate", typeof(DataTemplate),
-				typeof(TreeListView),
+			DependencyProperty.Register("GroupItemDataTemplate", typeof(DataTemplate), typeof(TreeListView),
 				new FrameworkPropertyMetadata(All.Instance["GroupItemDefaultDataTemplate"]));
 
 		/// <summary>
@@ -61,26 +79,14 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		private static readonly DependencyProperty ColumnsProperty = ColumnsPropertyKey.DependencyProperty;
 
-		#endregion // Dependencies.
+		#endregion // DependencyProperties.
 
 		#region Fields
 
 		/// <summary>
-		/// Name of the parts that have to be in the control template.
-		/// </summary>
-		private const string PartListView = "PART_ListView";
-
-		private const string PartDefaultMessage = "PART_DefaultMessage";
-
-		/// <summary>
-		/// Constant containing the default property name displayed in the tree view.
-		/// </summary>
-		internal const string CDefaultDisplayedPropertyName = "DisplayString";
-
-		/// <summary>
 		/// Stores the label used to display the default message.
 		/// </summary>
-		private Label _defaultMessage;
+		private Label _defaultMessageLabel;
 
 		/// <summary>
 		/// Stores the flag indicating the item selection mode when the inner tree list view is not loaded yet.
@@ -98,7 +104,7 @@ namespace KsWare.Presentation.TreeListView.Controls {
 			DefaultStyleKeyProperty.OverrideMetadata(typeof(TreeListView),
 				new FrameworkPropertyMetadata(typeof(TreeListView)));
 			DisplayMemberPathProperty.OverrideMetadata(typeof(TreeListView),
-				new FrameworkPropertyMetadata(CDefaultDisplayedPropertyName));
+				new FrameworkPropertyMetadata(DefaultDisplayedPropertyName));
 			ItemTemplateProperty.OverrideMetadata(typeof(TreeListView),
 				new FrameworkPropertyMetadata(null, new CoerceValueCallback(OnCoerceItemTemplateAndSelector)));
 			ItemTemplateSelectorProperty.OverrideMetadata(typeof(TreeListView),
@@ -144,7 +150,7 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		public event TreeViewItemEventHandler ItemViewModelModified;
 
 		/// <summary>
-		/// Event called when an item is clicked.
+		/// [Not implemented] Event called when an item is clicked.
 		/// </summary>  
 		public event TreeViewEventHandler ItemViewModelClicked {
 			add => throw new NotImplementedException();
@@ -211,62 +217,27 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// Gets or sets the flag indicating the item selection mode.
 		/// </summary>
 		public TreeSelectionMode SelectionMode {
-			get {
-				if (InnerListView != null) {
-					return InnerListView.SelectionModel.SelectionMode;
-				}
-
-				return _pendingSelectionMode;
-			}
-
+			get => InnerListView != null ? InnerListView.SelectionModel.SelectionMode : _pendingSelectionMode;
 			set {
-				if (InnerListView != null) {
-					InnerListView.SelectionModel.SelectionMode = value;
-				}
-				else {
-					_pendingSelectionMode = value;
-				}
+				if (InnerListView != null) InnerListView.SelectionModel.SelectionMode = value;
+				else _pendingSelectionMode = value;
 			}
 		}
 
 		/// <summary>
 		/// Gets the selected items view model.
 		/// </summary>
-		public IEnumerable<ITreeListViewItemVM> SelectedViewModels {
-			get {
-				if (InnerListView != null) {
-					return InnerListView.SelectionModel.SelectedViewModels;
-				}
-
-				return new ITreeListViewItemVM[] { };
-			}
-		}
+		public IEnumerable<ITreeListViewItemVM> SelectedViewModels => InnerListView != null ? InnerListView.SelectionModel.SelectedViewModels : Array.Empty<ITreeListViewItemVM>();
 
 		/// <summary>
 		/// Gets the selected objects.
 		/// </summary>
-		public IEnumerable<object> SelectedObjects {
-			get {
-				if (InnerListView != null) {
-					return InnerListView.SelectionModel.SelectedObjects;
-				}
-
-				return new object[] { };
-			}
-		}
+		public IEnumerable<object> SelectedObjects => InnerListView != null ? InnerListView.SelectionModel.SelectedObjects : Array.Empty<object>();
 
 		/// <summary>
 		/// Gets the checked items view model.
 		/// </summary>
-		public IEnumerable<ITreeListViewItemVM> CheckedViewModels {
-			get {
-				if (InnerListView != null) {
-					return InnerListView.CheckModel.CheckedItemsViewModel;
-				}
-
-				return new ITreeListViewItemVM[] { };
-			}
-		}
+		public IEnumerable<ITreeListViewItemVM> CheckedViewModels => InnerListView != null ? InnerListView.CheckModel.CheckedItemsViewModel : Array.Empty<ITreeListViewItemVM>();
 
 		/// <summary>
 		/// Gets or sets the inner list view.
@@ -278,7 +249,6 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		public TreeListViewColumnCollection Columns {
 			get => GetColumns(this);
-
 			private set => SetValue(ColumnsPropertyKey, value);
 		}
 
@@ -294,11 +264,9 @@ namespace KsWare.Presentation.TreeListView.Controls {
 
 			// Getting the parts from the control template.
 			InnerListView = GetTemplateChild(PartListView) as ExtendedListView;
-			_defaultMessage = GetTemplateChild(PartDefaultMessage) as Label;
+			_defaultMessageLabel = GetTemplateChild(PartDefaultMessage) as Label;
 
-			if ((InnerListView == null)
-			    || (_defaultMessage == null)
-			   ) {
+			if (InnerListView == null || _defaultMessageLabel == null) {
 				throw new Exception("TreeListView control template not correctly defined.");
 			}
 
@@ -333,9 +301,7 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		/// <param name="item">The item to make visible into the viewport.</param>
 		public void ScrollToItem(ITreeListViewItemVM item) {
-			if (InnerListView != null) {
-				InnerListView.ScrollIntoView(item, true);
-			}
+			InnerListView?.ScrollIntoView(item, true);
 		}
 
 		/// <summary>
@@ -343,18 +309,14 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		/// <param name="item">The item to select.</param>
 		public void Select(ITreeListViewItemVM item) {
-			if (InnerListView != null) {
-				InnerListView.SelectionModel.Select(item);
-			}
+			InnerListView?.SelectionModel.Select(item);
 		}
 
 		/// <summary>
 		/// This method selects all the items.
 		/// </summary>
 		public void SelectAll() {
-			if (InnerListView != null) {
-				InnerListView.SelectionModel.SelectAll();
-			}
+			InnerListView?.SelectionModel.SelectAll();
 		}
 
 		/// <summary>
@@ -362,18 +324,14 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		/// <param name="item">The item to unselect.</param>
 		public void Unselect(ITreeListViewItemVM item) {
-			if (InnerListView != null) {
-				InnerListView.SelectionModel.Unselect(item, false);
-			}
+			InnerListView?.SelectionModel.Unselect(item, false);
 		}
 
 		/// <summary>
 		/// Unselect all the items in the tree.
 		/// </summary>
 		public void UnselectAll() {
-			if (InnerListView != null) {
-				InnerListView.SelectionModel.UnselectAll();
-			}
+			InnerListView?.SelectionModel.UnselectAll();
 		}
 
 		/// <summary>
@@ -381,9 +339,7 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		/// <param name="item">The item to expand.</param>
 		public void Expand(ITreeListViewItemVM item) {
-			if (InnerListView != null) {
-				InnerListView.ExpandModel.SetIsExpanded(item, true);
-			}
+			InnerListView?.ExpandModel.SetIsExpanded(item, true);
 		}
 
 		/// <summary>
@@ -391,9 +347,7 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		/// <param name="item">The item to expand.</param>
 		public void Collapse(ITreeListViewItemVM item) {
-			if (InnerListView != null) {
-				InnerListView.ExpandModel.SetIsExpanded(item, false);
-			}
+			InnerListView?.ExpandModel.SetIsExpanded(item, false);
 		}
 
 		/// <summary>
@@ -401,9 +355,7 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		/// <param name="item">The item to check.</param>
 		public void Check(ITreeListViewItemVM item) {
-			if (InnerListView != null) {
-				InnerListView.CheckModel.Check(item, false);
-			}
+			InnerListView?.CheckModel.Check(item, false);
 		}
 
 		/// <summary>
@@ -411,38 +363,29 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		/// <param name="item">The item to uncheck.</param>
 		public void Uncheck(ITreeListViewItemVM item) {
-			if (InnerListView != null) {
-				InnerListView.CheckModel.Uncheck(item, false);
-			}
+			InnerListView?.CheckModel.Uncheck(item, false);
 		}
 
 		/// <summary>
-		/// This delagate is called when the view model is changed.
+		/// This delegate is called when the view model is changed.
 		/// </summary>
-		/// <param name="object">The event sender.</param>
-		/// <param name="eventArgs">The event arguments.</param>
-		private static void OnViewModelChanged(DependencyObject @object,
-			DependencyPropertyChangedEventArgs eventArgs) {
-			var treeListView = @object as TreeListView;
-			if (treeListView != null && treeListView.InnerListView != null) {
-				// Unloading the view model from the inner list.
-				treeListView.InnerListView.ViewModel = null;
+		/// <param name="e">The event arguments.</param>
+		private void OnViewModelChanged(DependencyPropertyChangedEventArgs e) {
+			if (InnerListView == null) return;
+			// Unloading the view model from the inner list.
+			InnerListView.ViewModel = null;
 
-				// Invalidating the old view model.
-				var oldViewModel = eventArgs.OldValue as ITreeListViewRootItemVM;
-				if (oldViewModel != null) {
-					oldViewModel.PropertyChanged -= treeListView.OnRootViewModelPropertyChanged;
-					oldViewModel.ItemViewModelModified -= treeListView.OnItemViewModelModified;
-				}
-
-				// Loading the new view model.
-				treeListView.LoadViewModel();
-
-				// Notifying the user.
-				if (treeListView.ViewModelChanged != null) {
-					treeListView.ViewModelChanged(treeListView, eventArgs);
-				}
+			// Invalidating the old view model.
+			if (e.OldValue is ITreeListViewRootItemVM oldViewModel) {
+				oldViewModel.PropertyChanged -= OnRootViewModelPropertyChanged;
+				oldViewModel.ItemViewModelModified -= OnItemViewModelModified;
 			}
+
+			// Loading the new view model.
+			LoadViewModel();
+
+			// Notifying the user.
+			ViewModelChanged?.Invoke(this, e);
 		}
 
 		/// <summary>
@@ -450,15 +393,14 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		private void LoadViewModel() {
 			// Handling the new view model.
-			if (ViewModel != null) {
-				// Registering on the view model PropertyChanged event.
-				UpdateDefaultMessageVisibility();
-				ViewModel.PropertyChanged += OnRootViewModelPropertyChanged;
-				ViewModel.ItemViewModelModified += OnItemViewModelModified;
+			if (ViewModel == null) return;
+			// Registering on the view model PropertyChanged event.
+			UpdateDefaultMessageVisibility();
+			ViewModel.PropertyChanged += OnRootViewModelPropertyChanged;
+			ViewModel.ItemViewModelModified += OnItemViewModelModified;
 
-				// Initializing the view model.
-				InnerListView.ViewModel = ViewModel;
-			}
+			// Initializing the view model.
+			InnerListView.ViewModel = ViewModel;
 		}
 
 		/// <summary>
@@ -467,9 +409,7 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// <param name="sender">The modified item view model.</param>
 		/// <param name="eventArgs">The event arguments.</param>
 		private void OnItemViewModelModified(object sender, PropertyChangedEventArgs eventArgs) {
-			if (ItemViewModelModified != null) {
-				ItemViewModelModified(sender, eventArgs);
-			}
+			ItemViewModelModified?.Invoke(sender, eventArgs);
 		}
 
 		/// <summary>
@@ -486,12 +426,12 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		private void UpdateDefaultMessageVisibility() {
 			if (ViewModel != null && ViewModel.Children.Any()) {
-				// Hidding the default message.
-				_defaultMessage.Visibility = Visibility.Hidden;
+				// Hiding the default message.
+				_defaultMessageLabel.Visibility = Visibility.Hidden;
 			}
 			else {
 				// Showing the default message.
-				_defaultMessage.Visibility = Visibility.Visible;
+				_defaultMessageLabel.Visibility = Visibility.Visible;
 			}
 		}
 
@@ -499,22 +439,17 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// Delegate called when the ItemTemplate or the ItemTemplateSelector property values have to be coerced.
 		/// </summary>
 		/// <param name="sender">The modified tree list view.</param>
-		/// <param name="object">The object to coerce.</param>
+		/// <param name="obj">The object to coerce.</param>
 		/// <returns>The coerced object.</returns>
-		private static object OnCoerceItemTemplateAndSelector(DependencyObject sender, object @object) {
-			var control = sender as TreeListView;
-			if (control != null) {
-				if (@object != null) {
-#pragma warning disable 1587
-					/// ItemTemplate and ItemTemplateSelector properties cannot be set (exception) if the DisplayMemberPath
-					/// is defined. It is the case as it is the default behaviour of the tree.
-					/// When using the ItemTemplate or ItemTemplateSelector properties, the DisplayMemberPath is then invalidated.
-#pragma warning restore 1587
-					control.DisplayMemberPath = string.Empty;
-				}
+		private static object OnCoerceItemTemplateAndSelector(DependencyObject sender, object obj) {
+			if (sender is TreeListView control && obj != null) {
+				// ItemTemplate and ItemTemplateSelector properties cannot be set (exception) if the DisplayMemberPath
+				// is defined. It is the case as it is the default behaviour of the tree.
+				// When using the ItemTemplate or ItemTemplateSelector properties, the DisplayMemberPath is then invalidated.
+				control.DisplayMemberPath = string.Empty;
 			}
 
-			return @object;
+			return obj;
 		}
 
 		/// <summary>
@@ -525,9 +460,7 @@ namespace KsWare.Presentation.TreeListView.Controls {
 			base.OnMouseDown(eventArgs);
 
 			// This event is raised when the click is performed in the tree but not in a specific item.
-			if (InnerListView != null) {
-				InnerListView.OnTreeListViewMouseDown(eventArgs);
-			}
+			InnerListView?.OnTreeListViewMouseDown(eventArgs);
 		}
 
 		/// <summary>
@@ -535,11 +468,8 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		/// <param name="sender">The modified list view.</param>
 		/// <param name="viewModels">The toggled items.</param>
-		private void OnInnerListItemsViewModelToggled(object sender,
-			IEnumerable<ITreeListViewItemVM> viewModels) {
-			if (ItemsViewModelToggled != null) {
-				ItemsViewModelToggled(this, viewModels);
-			}
+		private void OnInnerListItemsViewModelToggled(object sender, IEnumerable<ITreeListViewItemVM> viewModels) {
+			ItemsViewModelToggled?.Invoke(this, viewModels);
 		}
 
 		/// <summary>
@@ -547,8 +477,7 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		/// <param name="sender">The modified list view.</param>
 		/// <param name="eventArgs">The event arguments.</param>
-		private void OnInnerListViewSelectionChanged(object sender,
-			SelectionChangedEventArgs eventArgs) {
+		private void OnInnerListViewSelectionChanged(object sender, SelectionChangedEventArgs eventArgs) {
 			OnSelectionChanged(eventArgs.RemovedItems, eventArgs.AddedItems);
 		}
 
@@ -559,11 +488,10 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// <param name="removedItems">The removed items from the previous selection.</param>
 		protected virtual void OnSelectionChanged(IEnumerable removedItems, IEnumerable addedItems) {
 			// Notifying threw the tree.
-			if (SelectionChanged != null) {
-				var selectionEventArgs =
-					new SelectionChangedEventArgs(removedItems, addedItems);
-				SelectionChanged(this, selectionEventArgs);
-			}
+			var handler = SelectionChanged;
+			if (handler == null) return;
+			var selectionEventArgs = new SelectionChangedEventArgs(removedItems, addedItems);
+			handler(this, selectionEventArgs);
 		}
 
 		/// <summary>
@@ -571,11 +499,8 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		/// <param name="sender">The modified root view model.</param>
 		/// <param name="items">The added items.</param>
-		private void
-			OnInnerListViewItemViewModelsAdded(object sender, IEnumerable<ITreeListViewItemVM> items) {
-			if (ItemViewModelsAdded != null) {
-				ItemViewModelsAdded(this, items);
-			}
+		private void OnInnerListViewItemViewModelsAdded(object sender, IEnumerable<ITreeListViewItemVM> items) {
+			ItemViewModelsAdded?.Invoke(this, items);
 		}
 
 		/// <summary>
@@ -583,11 +508,8 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		/// <param name="sender">The modified root view model.</param>
 		/// <param name="items">The removed items.</param>
-		private void OnInnerListViewItemViewModelsRemoved(object sender,
-			IEnumerable<ITreeListViewItemVM> items) {
-			if (ItemViewModelsRemoved != null) {
-				ItemViewModelsRemoved(this, items);
-			}
+		private void OnInnerListViewItemViewModelsRemoved(object sender, IEnumerable<ITreeListViewItemVM> items) {
+			ItemViewModelsRemoved?.Invoke(this, items);
 		}
 
 		/// <summary>
@@ -595,11 +517,8 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		/// <param name="sender">The modified root view model.</param>
 		/// <param name="items">The removed items.</param>
-		private void OnInnerListViewItemViewModelDoubleClicked(object sender,
-			IEnumerable<ITreeListViewItemVM> items) {
-			if (ItemViewModelDoubleClicked != null) {
-				ItemViewModelDoubleClicked(this, items);
-			}
+		private void OnInnerListViewItemViewModelDoubleClicked(object sender, IEnumerable<ITreeListViewItemVM> items) {
+			ItemViewModelDoubleClicked?.Invoke(this, items);
 		}
 
 		#endregion // Methods.

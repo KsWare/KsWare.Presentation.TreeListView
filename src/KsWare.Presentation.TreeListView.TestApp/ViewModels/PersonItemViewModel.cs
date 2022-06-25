@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -32,13 +33,23 @@ namespace KsWare.Presentation.TreeListView.TestApp.ViewModels {
 		/// <summary>
 		/// Gets the person name.
 		/// </summary>
-		public override string DisplayString => OwnedObject.Name;
+		public override string DisplayString => OwnedObject.Name; // used for tree item w/o columns
 
 		/// <summary>
 		/// Gets the person id.
 		/// </summary>
 		public string Id => OwnedObject.Id.ToString();
 
+		/// <summary>
+		/// Gets the person name.
+		/// </summary>
+		[Column]
+		public string Name => OwnedObject.Name;
+
+		/// <summary>
+		/// Gets the person address.
+		/// </summary>
+		[Column]
 		public string Address => OwnedObject.Address;
 
 		/// <summary>

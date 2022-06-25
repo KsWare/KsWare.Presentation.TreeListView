@@ -9,7 +9,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 	/// <summary>
 	/// This class implements a base view model.
 	/// </summary>
-	public abstract class TreeListViewBaseVM : ITreeListViewBaseVM {
+	public abstract class TreeListViewItemBaseVM : ITreeListViewItemBaseVM {
 
 		#region Fields
 
@@ -68,10 +68,10 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		#region Constructors
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="TreeListViewBaseVM"/> class.
+		/// Initializes a new instance of the <see cref="TreeListViewItemBaseVM"/> class.
 		/// </summary>
 		/// <param name="ownedObject">The owned object.</param>
-		protected TreeListViewBaseVM(object ownedObject) {
+		protected TreeListViewItemBaseVM(object ownedObject) {
 			UntypedOwnedObject = ownedObject;
 			_propertiesBinding = new Dictionary<string, HashSet<string>>();
 			_isNotifyPropertyChangedEnable = true;
@@ -87,7 +87,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// It gives the base class the opportunity to finalize.
 		/// Do not provide destructors in types derived from this class.
 		/// </summary>
-		~TreeListViewBaseVM() {
+		~TreeListViewItemBaseVM() {
 			Dispose(false);
 		}
 
@@ -128,16 +128,14 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 				PreviewOwnedObjectChanged(oldObject, newObject);
 
 				// Unregistering the property changed event.
-				var oldOwnedObject = _untypedOwnedObject as INotifyPropertyChanged;
-				if (oldOwnedObject != null) {
+				if (_untypedOwnedObject is INotifyPropertyChanged oldOwnedObject) {
 					oldOwnedObject.PropertyChanged -= OnOwnedObjectPropertyChanged;
 				}
 
 				_untypedOwnedObject = value;
 
 				// Registering on the property changed event.
-				var newOwnedObject = _untypedOwnedObject as INotifyPropertyChanged;
-				if (newOwnedObject != null) {
+				if (_untypedOwnedObject is INotifyPropertyChanged newOwnedObject) {
 					newOwnedObject.PropertyChanged += OnOwnedObjectPropertyChanged;
 				}
 
@@ -156,7 +154,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 				if (_isVisible != value) {
 					_isVisible = value;
 					OnVisibilityChanged(value);
-					NotifyPropertyChanged("IsVisible");
+					NotifyPropertyChanged(nameof(IsVisible));
 				}
 			}
 		}
@@ -181,10 +179,9 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 			get => _isCheckingEnabled;
 
 			set {
-				if (value != _isCheckingEnabled) {
-					_isCheckingEnabled = value;
-					NotifyPropertyChanged(nameof(IsCheckingEnabled));
-				}
+				if (value == _isCheckingEnabled) return;
+				_isCheckingEnabled = value;
+				NotifyPropertyChanged(nameof(IsCheckingEnabled));
 			}
 		}
 
@@ -200,10 +197,9 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 			get => _toolTip;
 
 			set {
-				if (_toolTip != value) {
-					_toolTip = value;
-					NotifyPropertyChanged("ToolTip");
-				}
+				if (_toolTip == value) return;
+				_toolTip = value;
+				NotifyPropertyChanged(nameof(ToolTip));
 			}
 		}
 
@@ -219,10 +215,9 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 			get => _isBusy;
 
 			private set {
-				if (_isBusy != value) {
-					_isBusy = value;
-					NotifyPropertyChanged("IsBusy");
-				}
+				if (_isBusy == value) return;
+				_isBusy = value;
+				NotifyPropertyChanged(nameof(IsBusy));
 			}
 		}
 
@@ -290,18 +285,18 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		}
 
 		/// <summary>
-		/// Called each time a binded property of the owned object gets changed. 
+		/// Called each time a bound property of the owned object gets changed. 
 		/// This method can only be called if OwnedObject implements INotifyPropertyChanged.
 		/// </summary>
 		/// <param name="sender">The modified owned object.</param>
-		/// <param name="event">The event arguments.</param>
-		private void OnOwnedObjectPropertyChanged(object sender, PropertyChangedEventArgs @event) {
+		/// <param name="e">The event arguments.</param>
+		private void OnOwnedObjectPropertyChanged(object sender, PropertyChangedEventArgs e) {
 			// Calling internal handler.
-			OnOwnedObjectPropertyChangedInternal(@event);
+			OnOwnedObjectPropertyChangedInternal(e);
 
 			// Forward if in binding list.
-			if (_propertiesBinding.ContainsKey(@event.PropertyName)) {
-				foreach (var boundPropertyName in _propertiesBinding[@event.PropertyName]) {
+			if (_propertiesBinding.ContainsKey(e.PropertyName)) {
+				foreach (var boundPropertyName in _propertiesBinding[e.PropertyName]) {
 					NotifyPropertyChanged(boundPropertyName);
 				}
 			}
@@ -310,13 +305,13 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <summary>
 		/// Delegate called when a property of the owned object gets changed.
 		/// </summary>
-		/// <param name="event">The event arguments.</param>
-		protected virtual void OnOwnedObjectPropertyChangedInternal(PropertyChangedEventArgs @event) {
+		/// <param name="e">The event arguments.</param>
+		protected virtual void OnOwnedObjectPropertyChangedInternal(PropertyChangedEventArgs e) {
 			// Nothing to do by default.
 		}
 
 		/// <summary>
-		/// Method called when a property is modified to notify the listner.
+		/// Method called when a property is modified to notify the listener.
 		/// </summary>
 		/// <param name="propertyName">The property name.</param>
 		public void NotifyPropertyChanged(string propertyName) {
@@ -334,7 +329,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 			// Indicating the tree view is busy.
 			var busyTask = new System.Threading.Tasks.Task(() => IsBusy = true);
 
-			// Excuting the background task.
+			// Executing the background task.
 			var backgroundTask = busyTask.ContinueWith((antecedent) => start(this, parameter));
 
 			// The tree view is not busy anymore.
@@ -349,8 +344,8 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// </summary>
 		/// <typeparam name="TModel">The type of the owned object.</typeparam>
 		/// <returns>The generic version of the item.</returns>
-		public TlvBaseViewModel<TModel> ToGeneric<TModel>() {
-			return (this as TlvBaseViewModel<TModel>);
+		public TreeListViewBaseVM<TModel> ToGeneric<TModel>() {
+			return (this as TreeListViewBaseVM<TModel>);
 		}
 
 		/// <summary>
@@ -360,8 +355,8 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <returns>
 		/// The generic version of the item.
 		/// </returns>
-		ITreeListViewBaseVM<TModel> ITreeListViewBaseVM.ToGeneric<TModel>() {
-			return (this as ITreeListViewBaseVM<TModel>);
+		ITreeListViewItemBaseVM<TModel> ITreeListViewItemBaseVM.ToGeneric<TModel>() {
+			return (this as ITreeListViewItemBaseVM<TModel>);
 		}
 
 		/// <summary>
@@ -396,9 +391,8 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		private void Dispose(bool disposing) {
 			DisableNotifyPropertyChangedEvent();
 
-			if (_untypedOwnedObject != null && _untypedOwnedObject is INotifyPropertyChanged) {
-				(_untypedOwnedObject as INotifyPropertyChanged).PropertyChanged -=
-					OnOwnedObjectPropertyChanged;
+			if (_untypedOwnedObject is INotifyPropertyChanged npc) {
+				npc.PropertyChanged -= OnOwnedObjectPropertyChanged;
 			}
 
 			if (_disposed == false) {
@@ -409,7 +403,6 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 				}
 
 				// Free your own state (unmanaged objects) section.
-
 				_disposed = true;
 			}
 
@@ -421,9 +414,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// Notifies a dispose has been made.
 		/// </summary>
 		private void NotifyDispose() {
-			if (Disposed != null) {
-				Disposed();
-			}
+			if (Disposed != null) Disposed();
 		}
 
 		/// <summary>
@@ -448,7 +439,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 	/// This class implements a generic view model.
 	/// </summary>
 	/// <typeparam name="TModel">The type of the owned object.</typeparam>
-	public abstract class TlvBaseViewModel<TModel> : TreeListViewBaseVM, ITreeListViewBaseVM<TModel> {
+	public abstract class TreeListViewBaseVM<TModel> : TreeListViewItemBaseVM, ITreeListViewItemBaseVM<TModel> {
 
 		#region Constructors
 
@@ -456,7 +447,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// Initializes a new instance of the AViewModel class.
 		/// </summary>
 		/// <param name="ownedObject">The owned object.</param>
-		protected TlvBaseViewModel(TModel ownedObject)
+		protected TreeListViewBaseVM(TModel ownedObject)
 			: base(ownedObject) { }
 
 		#endregion // Constructors.

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using KsWare.Presentation.TreeListView.TestApp.Model;
@@ -35,16 +36,19 @@ namespace KsWare.Presentation.TreeListView.TestApp.ViewModels {
 		/// <summary>
 		/// Gets the registry element name.
 		/// </summary>
+		[Column]
 		public string Name => OwnedObject.Name;
 
 		/// <summary>
 		/// Gets the registry element kind.
 		/// </summary>
+		[Column]
 		public object Kind => OwnedObject.Kind;
 
 		/// <summary>
 		/// Gets the registry element data.
 		/// </summary>
+		[Column]
 		public object Data => OwnedObject.Data;
 
 		/// <summary>

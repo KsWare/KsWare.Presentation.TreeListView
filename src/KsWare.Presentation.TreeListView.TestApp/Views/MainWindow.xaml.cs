@@ -17,16 +17,6 @@ namespace KsWare.Presentation.TreeListView.TestApp.Views {
 		/// </summary>
 		public MainWindow() {
 			InitializeComponent();
-
-			// Initializing the mono column tree.
-			var rootViewModel = new PersonRootViewModel();
-			rootViewModel.SetIsLoadOnDemand(true);
-			rootViewModel.Model = Person.CreateFullTestModel();
-			MainPage.PersonTreeListView.ViewModel = rootViewModel;
-
-			// Initializing the multi column tree list view.
-			MainPage.MultiColumnTreeListView.ViewModel = new RegistryRootViewModel();
-			MainPage.MultiColumnTreeListView.SelectionMode = TreeSelectionMode.MultiSelection;
 		}
 
 		#endregion // Constructors.

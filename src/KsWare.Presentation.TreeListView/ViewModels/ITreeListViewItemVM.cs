@@ -7,7 +7,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 	/// <summary>
 	/// This interface defines an item in a hierarchical view model.
 	/// </summary>
-	public interface ITreeListViewItemVM : ITreeListViewBaseVM {
+	public interface ITreeListViewItemVM : ITreeListViewItemBaseVM {
 
 		#region Properties
 
@@ -159,6 +159,6 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 	/// This interface defines a generic item in a hierarchical view model.
 	/// </summary>
 	/// <typeparam name="TModel">The type of the owned object.</typeparam>
-	public interface ITreeListViewItemVM<TModel> : ITreeListViewItemVM, ITreeListViewBaseVM<TModel> { }
+	public interface ITreeListViewItemVM<TModel> : ITreeListViewItemVM, ITreeListViewItemBaseVM<TModel> { }
 
 }

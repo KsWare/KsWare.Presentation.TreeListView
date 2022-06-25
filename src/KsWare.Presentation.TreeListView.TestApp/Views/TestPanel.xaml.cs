@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using KsWare.Presentation.TreeListView.Controls;
+using KsWare.Presentation.TreeListView.Internal.Extensions;
 using KsWare.Presentation.TreeListView.ViewModels;
 
 namespace KsWare.Presentation.TreeListView.TestApp.Views {
@@ -59,8 +60,24 @@ namespace KsWare.Presentation.TreeListView.TestApp.Views {
 		/// <param name="sender">The tree sender.</param>
 		/// <param name="eventArgs">The event arguments.</param>
 		private void OnTreeListViewToTestLoaded(object sender, RoutedEventArgs eventArgs) {
+			UpdateAvailableColumns();
 			ColumnsListBox.ItemsSource = TreeListViewToTest.Columns;
 			SelectedItemsListBox.ItemsSource = TreeListViewToTest.SelectedViewModels;
+		}
+
+		private void UpdateAvailableColumns() {
+			//TODO continue here
+			if (TreeListViewToTest.ItemsSource != null) {
+				var type = TreeListViewToTest.ItemsSource.GetType();
+			} else if (TreeListViewToTest.Items != null) {
+				var type = TreeListViewToTest.Items.GetType();
+			}
+
+			if (TreeListViewToTest.Name == "PersonTreeListView") {
+
+			}else if (TreeListViewToTest.Name == "MultiColumnTreeListView") {
+
+			}
 		}
 
 		/// <summary>

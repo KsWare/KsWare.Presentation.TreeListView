@@ -6,7 +6,8 @@
              xmlns:views="clr-namespace:KsWare.Presentation.TreeListView.TestApp.Views"
              xmlns:controls="clr-namespace:KsWare.Presentation.TreeListView.Controls;assembly=KsWare.Presentation.TreeListView"
              mc:Ignorable="d"
-             d:DesignHeight="500" d:DesignWidth="500">
+             d:DesignHeight="500" d:DesignWidth="500"
+             d:DataContext="{d:DesignInstance views:MainPageVM, IsDesignTimeCreatable=False}">
 	<Grid>
 		<TabControl>
 			<TabItem Header="Person">
@@ -38,6 +39,19 @@
 					</controls:TreeListView>
 					<views:TestPanel x:Name="RegisterTestPanel" Grid.Column="1" />
 				</Grid>
+			</TabItem>
+			<TabItem Header="MVVM">
+				<controls:TreeListView 
+					x:Name="BoundTreeListView" x:FieldModifier="public" 
+					ViewModel="{Binding Registry}"
+					DisplayName="BoundTree" 
+					Margin="2">
+					<controls:TreeListView.Columns>
+						<controls:TreeListViewColumn Header="Name" DisplayMemberPath="Name" />
+						<controls:TreeListViewColumn Header="Kind" DisplayMemberPath="Kind" />
+						<controls:TreeListViewColumn Header="Data" DisplayMemberPath="Data" />
+					</controls:TreeListView.Columns>
+				</controls:TreeListView>
 			</TabItem>
 		</TabControl>
 	</Grid>

@@ -56,7 +56,7 @@ namespace KsWare.Presentation.TreeListView.Models {
 						_parent.SelectionModel.Select(item);
 					}
 
-					_parent.DroChildrenItems(item, false);
+					_parent.RemoveChildrenItems(item, false);
 					item.IsExpanded = value;
 				}
 			}

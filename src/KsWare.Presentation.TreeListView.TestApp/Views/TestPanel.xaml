@@ -26,6 +26,7 @@
 				<Label Content="Column property name : " />
 				<ComboBox x:Name="NewColumnPropertyName" Grid.Column="1" Margin="2">
 					<ComboBox.Items>
+						<system:String>Name</system:String>
 						<system:String>Address</system:String>
 					</ComboBox.Items>
 				</ComboBox>

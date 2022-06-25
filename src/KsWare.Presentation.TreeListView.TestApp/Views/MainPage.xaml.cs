@@ -1,4 +1,7 @@
-﻿using System.Windows.Controls;
+﻿using KsWare.Presentation.TreeListView.Controls;
+using KsWare.Presentation.TreeListView.TestApp.Model;
+using KsWare.Presentation.TreeListView.TestApp.ViewModels;
+using System.Windows.Controls;
 
 namespace KsWare.Presentation.TreeListView.TestApp.Views {
 
@@ -13,12 +16,22 @@ namespace KsWare.Presentation.TreeListView.TestApp.Views {
 		/// </summary>
 		public MainPage() {
 			InitializeComponent();
+			DataContext = new MainPageVM();
+
+
+			// Initializing the mono column tree.
+			var rootViewModel = new PersonRootViewModel();
+			rootViewModel.SetIsLoadOnDemand(true);
+			rootViewModel.Model = Person.CreateFullTestModel();
+			PersonTreeListView.ViewModel = rootViewModel;
+
+			// Initializing the multi column tree list view.
+			MultiColumnTreeListView.ViewModel = new RegistryRootViewModel();
+			MultiColumnTreeListView.SelectionMode = TreeSelectionMode.MultiSelection;
 
 			PersonTestPanel.TreeListViewToTest = PersonTreeListView;
 			RegisterTestPanel.TreeListViewToTest = MultiColumnTreeListView;
 		}
-
-
 
 	}
 

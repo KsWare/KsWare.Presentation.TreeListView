@@ -17,48 +17,9 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 	public delegate TreeListViewItemVM CreateChildViewModelDelegate(object ownedObject);
 
 	/// <summary>
-	/// Sets the order.
-	/// </summary>
-	public enum SortOrder {
-
-		/// <summary>
-		/// Enumeration value indicating the items are sorted in increasing order.
-		/// </summary>
-		Ascending,
-
-		/// <summary>
-		/// Enumeration value indicating the items are sorted in decreasing order.
-		/// </summary>
-		Descending,
-
-		/// <summary>
-		/// Enumeration value indicating the items are unordered.
-		/// </summary>
-		Unsorted,
-
-	}
-
-	/// <summary>
-	/// 
-	/// </summary>
-	public enum SortKey {
-
-		/// <summary>
-		/// The display string is considered as the sort key.
-		/// </summary>
-		DisplayString,
-
-		/// <summary>
-		/// Enumeration value indicating the sort key 
-		/// </summary>
-		ChildCount,
-
-	}
-
-	/// <summary>
 	/// This class defines an abstract tree list view item view model.
 	/// </summary>
-	public abstract class TreeListViewItemVM : TreeListViewBaseVM, ITreeListViewItemVM {
+	public abstract class TreeListViewItemVM : TreeListViewItemBaseVM, ITreeListViewItemVM {
 
 		#region Fields
 

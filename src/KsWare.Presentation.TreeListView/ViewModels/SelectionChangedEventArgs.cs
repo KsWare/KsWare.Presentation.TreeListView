@@ -42,12 +42,12 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <summary>
 		/// Gets the list of added items compared from the previous selection.
 		/// </summary>
-		public IEnumerable<ITreeListViewBaseVM> AddedItems {
+		public IEnumerable<ITreeListViewItemBaseVM> AddedItems {
 			get {
 				if
 					(_addedItems != null) {
 					foreach
-						(ITreeListViewBaseVM item in _addedItems) {
+						(ITreeListViewItemBaseVM item in _addedItems) {
 						yield return item;
 					}
 				}
@@ -57,12 +57,12 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <summary>
 		/// Gets the list of removed items compared from the previous selection.
 		/// </summary>
-		public IEnumerable<ITreeListViewBaseVM> RemovedItems {
+		public IEnumerable<ITreeListViewItemBaseVM> RemovedItems {
 			get {
 				if
 					(_removedItems != null) {
 					foreach
-						(ITreeListViewBaseVM item in _removedItems) {
+						(ITreeListViewItemBaseVM item in _removedItems) {
 						yield return item;
 					}
 				}

@@ -91,8 +91,9 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 			get => (TModel) UntypedOwnedObject;
 
 			set {
+				if(Equals(UntypedOwnedObject,value)) return;
 				UntypedOwnedObject = value;
-				NotifyPropertyChanged("Model");
+				NotifyPropertyChanged(nameof(Model));
 			}
 		}
 
@@ -137,9 +138,10 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <summary>
 		/// Convert the item to the generic version.
 		/// </summary>
-		/// <typeparam name="UModel">The type of the owned object.</typeparam>
+		/// <typeparam name="TUModel">The type of the owned object.</typeparam>
 		/// <returns>The generic version of the item.</returns>
 		ITreeListViewRootItemVM<TUModel> ITreeListViewRootItemVM.ToGeneric<TUModel>() {
+			//TODO TUModel??
 			return (this as ITreeListViewRootItemVM<TUModel>);
 		}
 
@@ -148,9 +150,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// </summary>
 		/// <param name="child">The child removed from the children list.</param>
 		protected sealed override void NotifyChildAdded(ITreeListViewItemVM child) {
-			if (ItemViewModelsAdded != null) {
-				ItemViewModelsAdded(this, new ITreeListViewItemVM[] {child});
-			}
+			ItemViewModelsAdded?.Invoke(this, new ITreeListViewItemVM[] {child});
 		}
 
 		/// <summary>
@@ -169,11 +169,8 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <param name="child">The child added to the children list.</param>
 		/// <param name="oldIndex">The old index of the item.</param>
 		/// <param name="newIndex">THe new index of the item.</param>
-		protected sealed override void
-			NotifyChildMoved(ITreeListViewItemVM child, int oldIndex, int newIndex) {
-			if (ItemViewModelMoved != null) {
-				ItemViewModelMoved(this, child, oldIndex, newIndex);
-			}
+		protected sealed override void NotifyChildMoved(ITreeListViewItemVM child, int oldIndex, int newIndex) {
+			ItemViewModelMoved?.Invoke(this, child, oldIndex, newIndex);
 		}
 
 		/// <summary>
@@ -181,11 +178,8 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// </summary>
 		/// <param name="sender">The item view model event sender.</param>
 		/// <param name="eventArgs">The event arguments.</param>
-		protected sealed override void
-			NotifyItemViewModelModified(object sender, PropertyChangedEventArgs eventArgs) {
-			if (ItemViewModelModified != null) {
-				ItemViewModelModified(sender, eventArgs);
-			}
+		protected sealed override void NotifyItemViewModelModified(object sender, PropertyChangedEventArgs eventArgs) {
+			ItemViewModelModified?.Invoke(sender, eventArgs);
 		}
 
 		#endregion // Methods.

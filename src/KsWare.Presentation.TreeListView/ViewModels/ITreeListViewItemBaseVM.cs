@@ -8,7 +8,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 	/// This interface defines the base view model interface.
 	/// It expose the most commonly used properties when creating a view model.
 	/// </summary>
-	public interface ITreeListViewBaseVM : INotifyPropertyChanged, IDisposable {
+	public interface ITreeListViewItemBaseVM : INotifyPropertyChanged, IDisposable {
 
 		#region Events
 
@@ -80,7 +80,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// </summary>
 		/// <typeparam name="TModel">The type of the owned object.</typeparam>
 		/// <returns>The generic version of the item.</returns>
-		ITreeListViewBaseVM<TModel> ToGeneric<TModel>();
+		ITreeListViewItemBaseVM<TModel> ToGeneric<TModel>();
 
 		/// <summary>
 		/// Executed a background work for the current view model.
@@ -97,7 +97,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 	/// This interface defines the generic view model interface.
 	/// </summary>
 	/// <typeparam name="TModel">The type of the owned object.</typeparam>
-	public interface ITreeListViewBaseVM<TModel> : ITreeListViewBaseVM {
+	public interface ITreeListViewItemBaseVM<TModel> : ITreeListViewItemBaseVM {
 
 		#region Properties
 

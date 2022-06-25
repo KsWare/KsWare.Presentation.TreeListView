@@ -12,7 +12,7 @@ namespace KsWare.Presentation.TreeListView.Controls {
 	/// <summary>
 	/// This control implements a tree based on a list view.
 	/// </summary>
-	/// <remarks>Implemented using the project "http://www.codeproject/KB/WPF/wpf_treelistview_control.aspx".</remarks>
+	/// <remarks>Implemented using the project "http://www.codeproject.com/KB/WPF/wpf_treelistview_control.aspx".</remarks>
 	public class ExtendedListView : ListView {
 
 		#region Dependencies
@@ -51,8 +51,7 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// Initializes the <see cref="ExtendedListView"/> class.
 		/// </summary>
 		static ExtendedListView() {
-			MultiColumnDefaultStyleKey =
-				new ComponentResourceKey(typeof(ExtendedListView), "MultiColumnDefaultStyleKey");
+			MultiColumnDefaultStyleKey = new ComponentResourceKey(typeof(ExtendedListView), "MultiColumnDefaultStyleKey");
 		}
 
 		/// <summary>
@@ -134,14 +133,11 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// </summary>
 		internal new ExtendedGridView View {
 			get => base.View as ExtendedGridView;
-
 			set {
 				if (base.View == value) return;
 				base.View = value;
-				if (value != null)
-					ColumnResizeBehavior.Activate();
-				else
-					ColumnResizeBehavior.Deactivate();
+				if (value != null) ColumnResizeBehavior.Activate();
+				else ColumnResizeBehavior.Deactivate();
 			}
 		}
 
@@ -173,7 +169,7 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		}
 
 		/// <summary>
-		/// This delagate is called when the view model is changed.
+		/// This delegate is called when the view model is changed.
 		/// </summary>
 		/// <param name="sender">The event sender.</param>
 		/// <param name="eventArgs">The event arguments.</param>
@@ -188,7 +184,7 @@ namespace KsWare.Presentation.TreeListView.Controls {
 				oldViewModel.ItemViewModelMoved -= extendedListView.OnItemViewModelMoved;
 
 				// Initializing the view model.
-				extendedListView.DroChildrenItems(oldViewModel, false);
+				extendedListView.RemoveChildrenItems(oldViewModel, false);
 			}
 
 			// Loading the new view model.
@@ -210,22 +206,18 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// <param name="select">Flag indicating if the selected item must be selected.</param>
 		/// <returns>True if the item is loaded, false otherwise.</returns>
 		public bool ScrollIntoView(ITreeListViewItemVM item, bool select) {
-			if (item != null && item.Parent != null) {
-				// Expand its parent to make Item visible.
-				ExpandModel.SetIsExpanded(item.Parent, true);
+			if (item?.Parent == null) return false;
 
-				// Showing the added item.
-				ScrollIntoView(item);
+			// Expand its parent to make Item visible.
+			ExpandModel.SetIsExpanded(item.Parent, true);
 
-				// Selecting the item if asked.
-				if (select) {
-					SelectionModel.Select(item);
-				}
+			// Showing the added item.
+			ScrollIntoView(item);
 
-				return true;
-			}
+			// Selecting the item if asked.
+			if (select) SelectionModel.Select(item);
 
-			return false;
+			return true;
 		}
 
 		/// <summary>
@@ -247,8 +239,8 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		/// Removes the children from the rows.
 		/// </summary>
 		/// <param name="viewModel">The view model containing the rows.</param>
-		/// <param name="includeParent">Flag indicating if the parent must be droped has well.</param>
-		internal void DroChildrenItems(ITreeListViewItemVM viewModel, bool includeParent) {
+		/// <param name="includeParent">Flag indicating if the parent must be removed has well.</param>
+		internal void RemoveChildrenItems(ITreeListViewItemVM viewModel, bool includeParent) {
 			if (!viewModel.ChildrenAreLoaded) return;
 
 			var startIndex = Rows.IndexOf(viewModel);
@@ -335,9 +327,7 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		internal void OnItemMouseClicked(ITreeListViewItemVM item,
 			System.Windows.Input.MouseButtonEventArgs eventArgs) {
 			// Notification.
-			if (ItemViewModelClicked != null) {
-				ItemViewModelClicked(this, new ITreeListViewItemVM[] {item});
-			}
+			ItemViewModelClicked?.Invoke(this, new ITreeListViewItemVM[] {item});
 		}
 
 		/// <summary>
@@ -351,9 +341,7 @@ namespace KsWare.Presentation.TreeListView.Controls {
 			_expandBehavior.OnItemMouseDoubleClicked(item, eventArgs);
 
 			// Notification.
-			if (ItemViewModelDoubleClicked != null) {
-				ItemViewModelDoubleClicked(this, new ITreeListViewItemVM[] {item});
-			}
+			ItemViewModelDoubleClicked?.Invoke(this, new ITreeListViewItemVM[] {item});
 		}
 
 		/// <summary>
@@ -382,31 +370,23 @@ namespace KsWare.Presentation.TreeListView.Controls {
 		private void OnItemViewModelsAdded(object sender, IEnumerable<ITreeListViewItemVM> items) {
 			// Updating the node loading in the list view.
 			foreach (var item in items) {
-				if (item.Parent.IsExpanded == true && item.Parent.ChildrenAreLoaded) {
-					// Computing the index of the item in the rows.
-					var parentRowIndex = Rows.IndexOf(item.Parent);
-					var childIndex = item.Parent.AllVisibleChildren.ToList().IndexOf(item);
-					var indexInRows = parentRowIndex + childIndex + 1;
+				if (item.Parent.IsExpanded == false || !item.Parent.ChildrenAreLoaded) continue;
 
-					// Adding the item in the rows.
-					if (indexInRows >= Rows.Count) {
-						Rows.Add(item);
-					}
-					else {
-						Rows.Insert(indexInRows, item);
-					}
+				// Computing the index of the item in the rows.
+				var parentRowIndex = Rows.IndexOf(item.Parent);
+				var childIndex = item.Parent.AllVisibleChildren.ToList().IndexOf(item);
+				var indexInRows = parentRowIndex + childIndex + 1;
 
-					// Recursive call on the visible children.
-					if (item.IsExpanded) {
-						LoadsChildrenItems(item);
-					}
-				}
+				// Adding the item in the rows.
+				if (indexInRows >= Rows.Count) Rows.Add(item);
+				else Rows.Insert(indexInRows, item);
+
+				// Recursive call on the visible children.
+				if (item.IsExpanded) LoadsChildrenItems(item);
 			}
 
 			// Forwarding the notification.
-			if (ItemViewModelsAdded != null) {
-				ItemViewModelsAdded(this, items);
-			}
+			ItemViewModelsAdded?.Invoke(this, items);
 		}
 
 		/// <summary>
@@ -422,18 +402,12 @@ namespace KsWare.Presentation.TreeListView.Controls {
 				CheckModel.Uncheck(item, true);
 
 				// Removing the items from the tree view if they are displayed.
-				if (item.IsExpanded) {
-					DroChildrenItems(item, true);
-				}
-				else {
-					Rows.Remove(item);
-				}
+				if (item.IsExpanded) RemoveChildrenItems(item, true);
+				else Rows.Remove(item);
 			}
 
 			// Forwarding the notification.
-			if (ItemViewModelsRemoved != null) {
-				ItemViewModelsRemoved(this, items);
-			}
+			ItemViewModelsRemoved?.Invoke(this, items);
 		}
 
 		/// <summary>
@@ -456,16 +430,12 @@ namespace KsWare.Presentation.TreeListView.Controls {
 			}
 
 			// Removing the items from the tree view if they are displayed.
-			if (item.IsExpanded)
-				DroChildrenItems(item, true);
-			else
-				Rows.Remove(item);
+			if (item.IsExpanded) RemoveChildrenItems(item, true);
+			else Rows.Remove(item);
 
 			// Adding the item in the rows.
-			if (newRowIndex >= Rows.Count)
-				Rows.Add(item);
-			else
-				Rows.Insert(newRowIndex, item);
+			if (newRowIndex >= Rows.Count) Rows.Add(item);
+			else Rows.Insert(newRowIndex, item);
 		}
 
 		#endregion // Methods.

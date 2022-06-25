@@ -100,32 +100,38 @@ namespace KsWare.Presentation.TreeListView.TestApp.Model {
 
 			var person1 = CreateTestModel(100, 0, 0);
 			person1.Name = "100 children";
+			person1.Address = "Address for " + person1.Name;
 			person1.NumberOfItemsToAdd = 100;
 			root.Children.Add(person1);
 
 			var person2 = CreateTestModel(250, 0, 0);
 			person2.Name = "250 children";
-			person1.NumberOfItemsToAdd = 250;
+			person2.Address = "Address for " + person2.Name;
+			person2.NumberOfItemsToAdd = 250;
 			root.Children.Add(person2);
 
 			var person3 = CreateTestModel(500, 0, 0);
 			person3.Name = "500 children";
-			person1.NumberOfItemsToAdd = 500;
+			person3.Address = "Address for " + person3.Name;
+			person3.NumberOfItemsToAdd = 500;
 			root.Children.Add(person3);
 
 			var person4 = CreateTestModel(1000, 0, 0);
 			person4.Name = "1000 children";
-			person1.NumberOfItemsToAdd = 1000;
+			person4.Address = "Address for " + person4.Name;
+			person4.NumberOfItemsToAdd = 1000;
 			root.Children.Add(person4);
 
 			var person5 = CreateTestModel(2000, 0, 0);
 			person5.Name = "2000 children";
-			person1.NumberOfItemsToAdd = 2000;
+			person5.Address = "Address for " + person5.Name;
+			person5.NumberOfItemsToAdd = 2000;
 			root.Children.Add(person5);
 
 			var person6 = CreateTestModel(10000, 0, 0);
 			person6.Name = "10000 children";
-			person1.NumberOfItemsToAdd = 10000;
+			person6.Address = "Address for " + person6.Name;
+			person6.NumberOfItemsToAdd = 10000;
 			root.Children.Add(person6);
 
 			return root;
@@ -136,11 +142,11 @@ namespace KsWare.Presentation.TreeListView.TestApp.Model {
 		/// </summary>
 		public static Person CreateEmptyTestModel() {
 			var root = new Person() {Name = "Root"};
-			root.Children.Add(new Person() {Name = "100 children", NumberOfItemsToAdd = 100});
-			root.Children.Add(new Person() {Name = "250 children", NumberOfItemsToAdd = 250});
-			root.Children.Add(new Person() {Name = "500 children", NumberOfItemsToAdd = 500});
-			root.Children.Add(new Person() {Name = "1000 children", NumberOfItemsToAdd = 1000});
-			root.Children.Add(new Person() {Name = "2000 children", NumberOfItemsToAdd = 2000});
+			root.Children.Add(new Person{Name = "100 children",  Address = "Address for 100 children", NumberOfItemsToAdd = 100});
+			root.Children.Add(new Person{Name = "250 children",  Address = "Address for 250 children", NumberOfItemsToAdd = 250});
+			root.Children.Add(new Person{Name = "500 children",  Address = "Address for 500 children", NumberOfItemsToAdd = 500});
+			root.Children.Add(new Person{Name = "1000 children", Address = "Address for 1000 children", NumberOfItemsToAdd = 1000});
+			root.Children.Add(new Person{Name = "2000 children", Address = "Address for 2000 children", NumberOfItemsToAdd = 2000});
 
 			return root;
 		}

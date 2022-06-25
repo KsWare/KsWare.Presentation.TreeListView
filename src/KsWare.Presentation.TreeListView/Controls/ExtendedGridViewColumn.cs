@@ -1,5 +1,8 @@
-﻿using System.Windows;
+﻿using System;
+using System.Reflection;
+using System.Windows;
 using System.Windows.Controls;
+using System.Xml.Linq;
 using KsWare.Presentation.TreeListView.Behaviors.Column;
 using KsWare.Presentation.TreeListView.Internal.Extensions;
 
@@ -87,6 +90,24 @@ namespace KsWare.Presentation.TreeListView.Controls {
 			get => this.GetPropertyValue<GridViewColumn, ExtendedGridViewColumnMeasureState>(nameof(State));
 			set => this.SetPropertyValue<GridViewColumn, int>(nameof(State), (int) value);
 		}
+
+		// internal ExtendedGridViewColumnMeasureState State {
+		// 	get => this.GetPropertyValue<GridViewColumn, ExtendedGridViewColumnMeasureState>(nameof(State));
+		// 	set => GetPropertyAccessor<GridViewColumn,ExtendedGridViewColumnMeasureState>(nameof(State))(value);
+		// }
+		//
+		// // DRAFT
+		// private static Action<R> GetPropertyAccessor<T,R>(string propertyName) { 
+		// 	var type = typeof(T);
+		// 	var pi = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.SetProperty | BindingFlags.Instance);
+		// 	var pt = pi.PropertyType;
+		//
+		// 	var param = System.Linq.Expressions.Expression.Parameter (typeof(R),"arg");  
+		// 	var member =System.Linq.Expressions.Expression.Property(param, propertyName);   
+		// 	var lambda = System.Linq.Expressions.Expression.Lambda(typeof(Action<R>), member, param);   
+		// 	var compiled = (Action<R>)lambda.Compile(); 
+		// 	return compiled; 
+		// }
 
 		/// <summary>
 		/// Gets or sets the index of the column in the grid.
