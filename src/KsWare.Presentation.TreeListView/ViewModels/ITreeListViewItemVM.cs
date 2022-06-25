@@ -32,7 +32,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		bool ChildrenAreLoaded { get; set; }
 
 		/// <summary>
-		/// Gets the flag indcating if the item has children. Can be used for load on demand implementation.
+		/// Gets the flag indicating if the item has children. Can be used for load on demand implementation.
 		/// </summary>
 		bool HasChildren { get; }
 

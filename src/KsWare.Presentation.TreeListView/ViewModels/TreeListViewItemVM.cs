@@ -19,7 +19,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 	/// <summary>
 	/// This class defines an abstract tree list view item view model.
 	/// </summary>
-	public abstract class TreeListViewItemVM : TreeListViewItemBaseVM, ITreeListViewItemVM {
+	public abstract partial class TreeListViewItemVM : TreeListViewItemBaseVM, ITreeListViewItemVM {
 
 		#region Fields
 
@@ -79,8 +79,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// Initializes a new instance of the <see cref="TreeListViewItemVM"/> class.
 		/// </summary>
 		/// <param name="ownedObject">The owned object.</param>
-		internal TreeListViewItemVM(object ownedObject)
-			: base(ownedObject) {
+		internal TreeListViewItemVM(object ownedObject) : base(ownedObject) {
 			_isExpanded = false;
 			_isSelected = false;
 			ChildrenRegistered = false;
@@ -439,12 +438,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <returns>True if the child has been added, false if the index is out of range.</returns>
 		private void InsertChild(int index, TreeListViewItemVM child) {
 			// Verifying if the item is in the range.
-			if
-				((index < 0)
-				 || (index >= _children.Count)
-				) {
-				return;
-			}
+			if (index < 0 || index >= _children.Count) return;
 
 			if (IsInRegistrationMode) {
 				// Adding the children.
@@ -467,19 +461,11 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <returns>True if the child has been moved, false if one of the indexes is out of range.</returns>
 		public void MoveChild(int oldIndex, int newIndex) {
 			// Verifying if the item is in the range.
-			if
-				((oldIndex < 0)
-				 || (oldIndex >= _children.Count)
-				 || (_comparerKeySelector != null)
-				) {
-				return;
-			}
-
+			if (oldIndex < 0 || oldIndex >= _children.Count || _comparerKeySelector != null) return;
 			var child = _children.ElementAt(oldIndex);
-			if (child != null) {
-				_children.Move(oldIndex, newIndex);
-				NotifyChildMoved(child, oldIndex, newIndex);
-			}
+			if (child == null) return;
+			_children.Move(oldIndex, newIndex);
+			NotifyChildMoved(child, oldIndex, newIndex);
 		}
 
 		/// <summary>
@@ -489,12 +475,10 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <returns>True if the child has been removed, false otherwise.</returns>
 		private bool RemoveChild(TreeListViewItemVM child) {
 			// Removing the items from the children list.
-			if (_children.Remove(child)) {
-				NotifyChildRemoved(child);
-				return true;
-			}
+			if (!_children.Remove(child)) return false;
+			NotifyChildRemoved(child);
+			return true;
 
-			return false;
 		}
 
 		/// <summary>
@@ -504,11 +488,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <returns>The removed item if any, null otherwise.</returns>
 		private TreeListViewItemVM RemoveChildAtInternal(int index) {
 			var child = _children.ElementAt(index);
-			if (child != null && RemoveChild(child)) {
-				return child;
-			}
-
-			return null;
+			return child != null && RemoveChild(child) ? child : null;
 		}
 
 		/// <summary>
@@ -526,9 +506,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 				item.EnableNotifyPropertyChangedEvent();
 				NotifyChildRemoved(item);
 
-				if (dispose) {
-					item.Dispose();
-				}
+				if (dispose) item.Dispose();
 			}
 		}
 
@@ -581,21 +559,20 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// Registers the children of this item on demand.
 		/// </summary>
 		private void RegisterChildren() {
-			if (ChildrenRegistered == false) {
-				IsInRegistrationMode = true;
+			if (ChildrenRegistered != false) return;
+			IsInRegistrationMode = true;
 
-				// If a binding has been registered, the synchronization must be done. 
-				// The children loading process is no more handled by the user.
-				if (_childrenBinding.Count != 0) {
-					SynchronizeChildren();
-				}
-				else {
-					InternalRegisterChildren();
-				}
-
-				IsInRegistrationMode = false;
-				ChildrenRegistered = true;
+			// If a binding has been registered, the synchronization must be done. 
+			// The children loading process is no more handled by the user.
+			if (_childrenBinding.Count != 0) {
+				SynchronizeChildren();
 			}
+			else {
+				InternalRegisterChildren();
+			}
+
+			IsInRegistrationMode = false;
+			ChildrenRegistered = true;
 		}
 
 		/// <summary>
@@ -606,7 +583,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		}
 
 		/// <summary>
-		/// Synchronize the view model children with the owned object binded collection.
+		/// Synchronize the view model children with the owned object bound collection.
 		/// </summary>
 		private void SynchronizeChildren() {
 			foreach (var childrenBinding in _childrenBinding) {
@@ -620,23 +597,16 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// </summary>
 		/// <param name="collection">The collection to synchronize</param>
 		private void SynchronizeChildren(IList collection) {
-			var c = collection as INotifyCollectionChanged;
 			CreateChildViewModelDelegate creator = null;
-			if (c != null) {
-				if (_childrenBinding.ContainsKey(c)) {
-					creator = _childrenBinding[c];
-				}
-			}
+			if (collection is INotifyCollectionChanged c && _childrenBinding.ContainsKey(c))
+				creator = _childrenBinding[c];
 
-			if (collection != null && creator != null) {
-				// Synchronizing the children.
-				foreach (var model in collection) {
-					// Creating the view model using the apropriate delegate.
-					var itemViewModel = creator(model);
-					if (itemViewModel != null) {
-						AddChild(itemViewModel);
-					}
-				}
+			if (collection == null || creator == null) return;
+			// Synchronizing the children.
+			foreach (var model in collection) {
+				// Creating the view model using the appropriate delegate.
+				var itemViewModel = creator(model);
+				if (itemViewModel != null) AddChild(itemViewModel);
 			}
 		}
 
@@ -647,8 +617,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <param name="childViewModelType">The type of the view model to create.</param>
 		protected void BindChildren(string modelProperty, Type childViewModelType) {
 			// Using the native view model creator delegate.
-			BindChildren(modelProperty,
-				ownedObject => CreateChildViewModel(childViewModelType, ownedObject));
+			BindChildren(modelProperty, ownedObject => CreateChildViewModel(childViewModelType, ownedObject));
 		}
 
 		/// <summary>
@@ -658,18 +627,14 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <param name="creationDelegate">Specific child view model creation delegate.</param>
 		protected void BindChildren(string modelProperty, CreateChildViewModelDelegate creationDelegate) {
 			// Registering the binding.
-			var collectionNotifier =
-				GetCollectionFromPropertyName(UntypedOwnedObject, modelProperty);
-			if (collectionNotifier != null) {
-				// Binding the collections.
-				_childrenBinding.Add(collectionNotifier, creationDelegate);
-				collectionNotifier.CollectionChanged += OnOwnedObjectCollectionChanged;
+			var collectionNotifier = GetCollectionFromPropertyName(UntypedOwnedObject, modelProperty);
+			if (collectionNotifier == null) return;
+			// Binding the collections.
+			_childrenBinding.Add(collectionNotifier, creationDelegate);
+			collectionNotifier.CollectionChanged += OnOwnedObjectCollectionChanged;
 
-				// Synchronize it if the item is already expanded.
-				if (IsExpanded) {
-					SynchronizeChildren(collectionNotifier as IList);
-				}
-			}
+			// Synchronize it if the item is already expanded.
+			if (IsExpanded) SynchronizeChildren(collectionNotifier as IList);
 		}
 
 		/// <summary>
@@ -699,141 +664,100 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 						creator = _childrenBinding[c];
 					}
 				}
+				if (sender is not IList list) return;
+				// Update the bound children.
+				switch (e.Action) {
+					case NotifyCollectionChangedAction.Add: {
+						var doExplicitAdd = true;
+						var index = e.NewStartingIndex;
+						if (ChildrenRegistered == false) {
+							RegisterChildren();
 
-				if (sender is IList list) {
-					// Update the binded children.
-					switch (e.Action) {
-						case NotifyCollectionChangedAction.Add: {
-							var doExplicitAdd = true;
-							var index = e.NewStartingIndex;
-							if (ChildrenRegistered == false) {
-								RegisterChildren();
+							// Loading children will maybe apply the modifications.
+							if (_children.Count == list.Count) {
+								doExplicitAdd = false;
+							}
+						}
 
-								// Loading children will maybe apply the modifications.
-								if (_children.Count == list.Count) {
-									doExplicitAdd = false;
+						if (!doExplicitAdd || creator == null) break;
+						foreach (var model in e.NewItems) {
+							// Creating the view model using the appropriate delegate.
+							var itemViewModel = creator(model);
+							if (itemViewModel != null) {
+								if (index == _children.Count) AddChild(itemViewModel);
+								else InsertChild(index, itemViewModel);
+							}
+							// Increment indices.
+							++index;
+						}
+						break;
+					}
+					case NotifyCollectionChangedAction.Remove: {
+						var modelToRemove = Children.Where(viewModel => e.OldItems.Contains(viewModel.UntypedOwnedObject));
+						foreach (var model in modelToRemove) {
+							var removeIndex = _children.IndexOf(model);
+							RemoveChildAt(removeIndex);
+						}
+						break;
+					}
+					case NotifyCollectionChangedAction.Replace: {
+						if (creator == null) break;
+						var currentItemIndex = 0;
+						foreach (var newModel in e.NewItems) {
+							// Get old model.
+							var oldModel = e.OldItems[currentItemIndex];
+
+							// Create the new Item
+							var itemViewModel = creator(newModel);
+							if (itemViewModel != null) {
+								// Search for the removed item in the collection to update.
+								var viewModelToReplace = Children.FirstOrDefault(viewModel => viewModel.UntypedOwnedObject == oldModel);
+								if (viewModelToReplace != null) {
+									// Get the index of the removed item
+									var replaceIndex = _children.IndexOf(viewModelToReplace);
+
+									// Replace the old item by the new one
+									RemoveChild(viewModelToReplace);
+									InsertChild(replaceIndex, itemViewModel);
 								}
 							}
-
-							if (doExplicitAdd && creator != null) {
-								foreach (var model in e.NewItems) {
-									// Creating the view model using the apropriate delegate.
-									var itemViewModel = creator(model);
-									if (itemViewModel != null) {
-										if (index == _children.Count) {
-											AddChild(itemViewModel);
-										}
-										else {
-											InsertChild(index, itemViewModel);
-										}
-									}
-
-									// Increment indices.
-									++index;
-								}
-							}
+							// Increment indices.
+							currentItemIndex++;
 						}
-
-							break;
-
-						case NotifyCollectionChangedAction.Remove: {
-							var modelToRemove = new List<TreeListViewItemVM>();
-
-							foreach (var viewModel in Children) {
-								if (e.OldItems.Contains(viewModel.UntypedOwnedObject)) {
-									modelToRemove.Add(viewModel);
-								}
-							}
-
-							// ReSharper disable once UnusedVariable
-							foreach (var model in modelToRemove) {
-								var removeIndex = _children.IndexOf(model);
-								RemoveChildAt(removeIndex);
-							}
+						break;
+					}
+					case NotifyCollectionChangedAction.Move: {
+						var oldIndex = e.OldStartingIndex + e.OldItems.Count - 1;
+						while (oldIndex > 0) {
+							MoveChild(oldIndex, e.NewStartingIndex);
+							oldIndex--;
 						}
-
-							break;
-
-						case NotifyCollectionChangedAction.Replace: {
-							if (creator != null) {
-								var currentItemIndex = 0;
-								foreach (var newModel in e.NewItems) {
-									// Get old model.
-									var oldModel = e.OldItems[currentItemIndex];
-
-									// Create the new Item
-									var itemViewModel = creator(newModel);
-									if (itemViewModel != null) {
-										// Search for the removed item in the collection to update.
-										TreeListViewItemVM viewModelToReplace = null;
-										foreach (var viewModel in Children) {
-											if (viewModel.UntypedOwnedObject == oldModel) {
-												viewModelToReplace = viewModel;
-												break;
-											}
-										}
-
-										if (viewModelToReplace != null) {
-											// Get the index of the removed item
-											var replaceIndex = _children.IndexOf(viewModelToReplace);
-
-											// Replace the old item by the new one
-											RemoveChild(viewModelToReplace);
-											InsertChild(replaceIndex, itemViewModel);
-										}
-									}
-
-									// Increment indices.
-									++currentItemIndex;
-								}
-							}
-						}
-
-							break;
-
-						case NotifyCollectionChangedAction.Move: {
-							var oldIndex = e.OldStartingIndex + e.OldItems.Count - 1;
-							while (oldIndex > 0) {
-								MoveChild(oldIndex, e.NewStartingIndex);
-								oldIndex--;
-							}
-						}
-
-							break;
-
-						case NotifyCollectionChangedAction.Reset: {
-							ClearChildren();
-						}
-
-							break;
+						break;
+					}
+					case NotifyCollectionChangedAction.Reset: {
+						ClearChildren();
+						break;
 					}
 				}
 			}));
 		}
 
 		/// <summary>
-		/// Creates a new children as ATreeListViewItemViewModel of this item.
+		/// Creates a new children as <see cref="TreeListViewItemVM"/> of this item.
 		/// </summary>
 		/// <param name="modelViewType">The model view type.</param>
 		/// <param name="ownedObject">The owned object of the new item.</param>
 		/// <returns>The created item.</returns>
 		private TreeListViewItemVM CreateChildViewModel(Type modelViewType, object ownedObject) {
-			if
-				((modelViewType.IsInterface == false)
-				 && (modelViewType.IsAbstract == false)
-				) {
-				var @params = new object[1];
-				@params[0] = ownedObject;
-				try {
-					return Activator.CreateInstance(modelViewType, @params) as TreeListViewItemVM;
-				}
-				catch
-					(Exception /*Ex*/) {
-					return null;
-				}
+			if (modelViewType.IsInterface || modelViewType.IsAbstract) return null;
+			var args = new object[1];
+			args[0] = ownedObject;
+			try {
+				return Activator.CreateInstance(modelViewType, args) as TreeListViewItemVM;
 			}
-
-			return null;
+			catch (Exception /*ex*/) {
+				return null;
+			}
 		}
 
 		/// <summary>
@@ -857,11 +781,8 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 				}
 			}
 
-			if
-				((pi.Count > 0)
-				 && (pi.Last() != null)
-				) {
-				// Get collection object from propery list
+			if (pi.Count > 0 && pi.Last() != null) {
+				// Get collection object from property list
 				var obj = o;
 				foreach (var pInfo in pi) {
 					obj = pInfo.GetValue(obj, null);
@@ -878,15 +799,12 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// </summary>
 		/// <param name="sender">The modified collection.</param>
 		/// <param name="eventArgs">The event arguments.</param>
-		protected virtual void
-			OnChildrenCollectionChanged(object sender, NotifyCollectionChangedEventArgs eventArgs) {
+		protected virtual void OnChildrenCollectionChanged(object sender, NotifyCollectionChangedEventArgs eventArgs) {
 			// Updating the HasChildren property.
-			NotifyPropertyChanged("HasChildren");
+			NotifyPropertyChanged(nameof(HasChildren));
 
 			// Notifying the user.
-			if (ChildrenCollectionChanged != null) {
-				ChildrenCollectionChanged(sender, eventArgs);
-			}
+			ChildrenCollectionChanged?.Invoke(sender, eventArgs);
 		}
 
 		/// <summary>
@@ -895,9 +813,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <param name="newValue">The new visibility.</param>
 		protected override void OnVisibilityChanged(bool newValue) {
 			// Updating the children visibility as well.
-			foreach (var child in Children) {
-				child.IsVisible = newValue;
-			}
+			foreach (var child in Children) child.IsVisible = newValue;
 		}
 
 		/// <summary>
@@ -926,14 +842,10 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 			base.UnregisterFromModel();
 
 			// Removing this object from the parent children list.
-			if (Parent != null) {
-				Parent._children.Remove(this);
-			}
+			Parent?._children.Remove(this);
 
 			// Disposing the children.
-			while (_children.Count > 0) {
-				_children[0].Dispose();
-			}
+			while (_children.Count > 0) _children[0].Dispose();
 
 			// Unbind the children.
 			UnbindChildren();
@@ -1024,9 +936,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// </summary>
 		/// <param name="child">The child removed from the children list.</param>
 		protected virtual void NotifyChildAdded(ITreeListViewItemVM child) {
-			if (Parent != null) {
-				Parent.NotifyChildAdded(child);
-			}
+			Parent?.NotifyChildAdded(child);
 		}
 
 		/// <summary>
@@ -1034,9 +944,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// </summary>
 		/// <param name="child">The child added to the children list.</param>
 		protected virtual void NotifyChildRemoved(ITreeListViewItemVM child) {
-			if (Parent != null) {
-				Parent.NotifyChildRemoved(child);
-			}
+			Parent?.NotifyChildRemoved(child);
 		}
 
 		/// <summary>
@@ -1046,9 +954,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <param name="oldIndex">The old index of the item.</param>
 		/// <param name="newIndex">THe new index of the item.</param>
 		protected virtual void NotifyChildMoved(ITreeListViewItemVM child, int oldIndex, int newIndex) {
-			if (Parent != null) {
-				Parent.NotifyChildMoved(child, oldIndex, newIndex);
-			}
+			Parent?.NotifyChildMoved(child, oldIndex, newIndex);
 		}
 
 		/// <summary>
@@ -1057,9 +963,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <param name="sender">The item view model event sender.</param>
 		/// <param name="eventArgs">The event arguments.</param>
 		protected virtual void NotifyItemViewModelModified(object sender, PropertyChangedEventArgs eventArgs) {
-			if (Parent != null) {
-				Parent.NotifyItemViewModelModified(this, eventArgs);
-			}
+			Parent?.NotifyItemViewModelModified(this, eventArgs);
 		}
 
 		/// <summary>
@@ -1073,7 +977,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <summary>
 		/// Returns the children view models owning the given object.
 		/// </summary>
-		/// <param name="ownedObject">The analysed owned object.</param>
+		/// <param name="ownedObject">The analyzed owned object.</param>
 		/// <param name="comparer">The owned object comparer used when searching for the view models.</param>
 		/// <remarks>If the comparer is null, the comparison is made by reference.</remarks>
 		/// <returns>The list of view models owning the object.</returns>
@@ -1110,19 +1014,16 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		public void EnableSort(SortKey key, SortOrder sortOrder) {
 			if (sortOrder == SortOrder.Unsorted) {
 				RemoveSorter();
+				return;
 			}
-			else {
-				switch (key) {
-					case SortKey.DisplayString: {
-						SetSorter(GetDisplayStringAsSortKey, new StringComparer(sortOrder));
-					}
-						break;
 
-					case SortKey.ChildCount: {
-						SetSorter(GetChildCountAsSortKey, new IntComparer(sortOrder));
-					}
-						break;
-				}
+			switch (key) {
+				case SortKey.DisplayString:
+					SetSorter(GetDisplayStringAsSortKey, new StringComparer(sortOrder));
+					break;
+				case SortKey.ChildCount:
+					SetSorter(GetChildCountAsSortKey, new IntComparer(sortOrder));
+					break;
 			}
 		}
 
@@ -1132,8 +1033,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <param name="parentViewModel">The parent view model.</param>
 		/// <param name="viewModel">The view model.</param>
 		/// <returns>The display string of the view model.</returns>
-		private static object GetDisplayStringAsSortKey(ITreeListViewItemVM parentViewModel,
-			ITreeListViewItemVM viewModel) {
+		private static object GetDisplayStringAsSortKey(ITreeListViewItemVM parentViewModel, ITreeListViewItemVM viewModel) {
 			return viewModel.DisplayString;
 		}
 
@@ -1143,243 +1043,11 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// <param name="parentViewModel">The parent view model.</param>
 		/// <param name="viewModel">The view model.</param>
 		/// <returns>The display string of the view model.</returns>
-		private static object GetChildCountAsSortKey(ITreeListViewItemVM parentViewModel,
-			ITreeListViewItemVM viewModel) {
+		private static object GetChildCountAsSortKey(ITreeListViewItemVM parentViewModel, ITreeListViewItemVM viewModel) {
 			return viewModel.Children.Count();
 		}
-
-		/// <summary>
-		/// A ascending string comparer.
-		/// </summary>
-		public class StringComparer : IComparer<object> {
-
-			#region Fields
-
-			/// <summary>
-			/// The m order
-			/// </summary>
-			private readonly int _order = 1;
-
-			#endregion // Fields.
-
-			#region Constructors
-
-			/// <summary>
-			/// Initializes a new instance of the <see cref="StringComparer"/> class.
-			/// </summary>
-			/// <param name="sorterOrder">The sorter order.</param>
-			public StringComparer(SortOrder sorterOrder) {
-				if (sorterOrder == SortOrder.Descending) {
-					_order = -1;
-				}
-			}
-
-			#endregion // Constructors.
-
-			#region Methods
-
-			/// <summary>
-			/// Compares two strings.
-			/// </summary>
-			/// <param name="first">The first argument.</param>
-			/// <param name="second">The second argument.</param>
-			/// <returns>string.Compare</returns>
-			int IComparer<object>.Compare(object first, object second) {
-				return _order * string.Compare(first.ToString(), second.ToString(),
-					StringComparison.InvariantCultureIgnoreCase);
-			}
-
-			#endregion // Methods.
-
-		}
-
-		/// <summary>
-		/// A ascending int comparer.
-		/// </summary>
-		public class IntComparer : IComparer<object> {
-
-			#region Fields
-
-			/// <summary>
-			/// The m order
-			/// </summary>
-			private readonly int _order = 1;
-
-			#endregion // Fields.
-
-			#region Constructors
-
-			/// <summary>
-			/// Initializes a new instance of the <see cref="StringComparer"/> class.
-			/// </summary>
-			/// <param name="sorterOrder">The sorter order.</param>
-			public IntComparer(SortOrder sorterOrder) {
-				if (sorterOrder == SortOrder.Descending) {
-					_order = -1;
-				}
-			}
-
-			#endregion // Constructors.
-
-			#region Methods
-
-			/// <summary>
-			/// Compares two strings.
-			/// </summary>
-			/// <param name="first">The first argument.</param>
-			/// <param name="second">The second argument.</param>
-			/// <returns>string.Compare</returns>
-			int IComparer<object>.Compare(object first, object second) {
-				if (first is int && second is int) {
-					var f = (int) first;
-					var s = (int) second;
-					return _order * f.CompareTo(s);
-				}
-
-				return 0;
-			}
-
-			#endregion // Methods.
-
-		}
-
-		#endregion // Sorter.
-
+		#endregion // Sorter
 		#endregion // Methods.
-
-		#region Inner classes
-
-		/// <summary>
-		/// This class defines a view model collection implemented to handle the item index in the 
-		/// parent view model for performance purpose.
-		/// </summary>
-		private class ViewModelCollection : ObservableCollection<TreeListViewItemVM> {
-
-			#region Fields
-
-			/// <summary>
-			/// The collection owner.
-			/// </summary>
-			private readonly TreeListViewItemVM _owner;
-
-			#endregion // Fields.
-
-			#region Constructors
-
-			/// <summary>
-			/// Initializes a new instance of the <see cref="ViewModelCollection"/> class.
-			/// </summary>
-			/// <param name="owner">The owner of the collection.</param>
-			public ViewModelCollection(TreeListViewItemVM owner) {
-				_owner = owner;
-			}
-
-			#endregion // Constructors.
-
-			#region Methods
-
-			/// <summary>
-			/// This method clears the items.
-			/// </summary>
-			protected override void ClearItems() {
-				while (Count != 0) {
-					RemoveAt(Count - 1);
-				}
-			}
-
-			/// <summary>
-			/// This method inserts an item.
-			/// </summary>
-			/// <param name="index">The insertion index.</param>
-			/// <param name="item">The item to insert.</param>
-			protected override void InsertItem(int index, TreeListViewItemVM item) {
-				if (item == null) {
-					throw new ArgumentNullException(nameof(item));
-				}
-
-				if (item.Parent != _owner) {
-					// Removing the element from the old parent if any.
-					if (item.Parent != null) {
-						item.Parent._children.Remove(item);
-					}
-
-					// Updating the parenting info.
-					item.Parent = _owner;
-					item._index = index;
-					item.IsVisible = item.Parent.IsVisible;
-
-					// Loading children if not load on demand.
-					if (item.LoadItemsOnDemand == false) {
-						item.RegisterChildren();
-					}
-
-					// Updating the index of the item placed after the added one.
-					for (var i = index; index < Count; index++) {
-						this[i]._index++;
-					}
-
-					// Inserting the item.
-					base.InsertItem(index, item);
-				}
-			}
-
-			/// <summary>
-			/// This method removes an item.
-			/// </summary>
-			/// <param name="itemIndex">The item index.</param>
-			protected override void RemoveItem(int itemIndex) {
-				// Getting the item.
-				var item = this[itemIndex];
-
-				// Invalidating the index.
-				item._index = -1;
-
-				// Invalidating the parent.
-				item.Parent = null;
-
-				// Updating the index of the item placed after the removed one.
-				for (var idx = itemIndex + 1; idx < Count; idx++) {
-					this[idx]._index--;
-				}
-
-				// Removing it.
-				base.RemoveItem(itemIndex);
-			}
-
-			/// <summary>
-			/// Method called when an item is moved.
-			/// </summary>
-			/// <param name="oldIndex">The old index.</param>
-			/// <param name="newIndex">The new index.</param>
-			protected override void MoveItem(int oldIndex, int newIndex) {
-				// Moving the item.
-				base.MoveItem(oldIndex, newIndex);
-
-				// Updating all the items.
-				for (var idx = 0; idx < Count; idx++) {
-					this[idx]._index = idx;
-				}
-			}
-
-			/// <summary>
-			/// This method replace an item.
-			/// </summary>
-			/// <param name="itemIndex">The item of the index to replace.</param>
-			/// <param name="item">The item.</param>
-			protected override void SetItem(int itemIndex, TreeListViewItemVM item) {
-				if (item == null) {
-					throw new ArgumentNullException(nameof(item));
-				}
-
-				RemoveAt(itemIndex);
-				InsertItem(itemIndex, item);
-			}
-
-			#endregion // Methods.
-
-		}
-
-		#endregion // Inner classes.
 
 	}
 

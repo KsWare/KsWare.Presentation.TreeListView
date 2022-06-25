@@ -10,6 +10,9 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 
 		#region Events
 
+		// TODO do we need 4 events? why not using CollectionChanged?
+		// event CollectionChangeEventHandler ChildrenCollectionChanged;
+
 		/// <summary>
 		/// Event called when some items are added.
 		/// </summary>
@@ -145,6 +148,8 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 			return (this as ITreeListViewRootItemVM<TUModel>);
 		}
 
+
+
 		/// <summary>
 		/// Method to call when new children are added to this view model.
 		/// </summary>
@@ -158,9 +163,7 @@ namespace KsWare.Presentation.TreeListView.ViewModels {
 		/// </summary>
 		/// <param name="child">The child added to the children list.</param>
 		protected sealed override void NotifyChildRemoved(ITreeListViewItemVM child) {
-			if (ItemViewModelsRemoved != null) {
-				ItemViewModelsRemoved(this, new ITreeListViewItemVM[] {child});
-			}
+			ItemViewModelsRemoved?.Invoke(this, new ITreeListViewItemVM[] {child});
 		}
 
 		/// <summary>
